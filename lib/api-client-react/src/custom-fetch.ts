@@ -6,6 +6,10 @@ export type ErrorType<T = unknown> = ApiError<T>;
 
 export type BodyType<T> = T;
 
+declare global {
+  var __API_BASE_URL__: string | undefined;
+}
+
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
@@ -29,6 +33,31 @@ function resolveUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (isUrl(input)) return input.toString();
   return input.url;
+}
+
+function resolveApiBaseUrl(): string {
+  if (typeof globalThis === "undefined") return "";
+
+  const raw = globalThis.__API_BASE_URL__;
+  if (typeof raw !== "string") return "";
+
+  return raw.trim().replace(/\/$/, "");
+}
+
+function withApiBase(input: RequestInfo | URL): RequestInfo | URL {
+  if (typeof input !== "string") return input;
+
+  // Keep absolute or protocol-relative URLs unchanged.
+  if (/^(https?:)?\/\//i.test(input)) return input;
+
+  const apiBase = resolveApiBaseUrl();
+  if (!apiBase) return input;
+
+  if (input.startsWith("/")) {
+    return `${apiBase}${input}`;
+  }
+
+  return input;
 }
 
 function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
@@ -303,9 +332,10 @@ export async function customFetch<T = unknown>(
     headers.set("accept", DEFAULT_JSON_ACCEPT);
   }
 
-  const requestInfo = { method, url: resolveUrl(input) };
+  const finalInput = withApiBase(input);
+  const requestInfo = { method, url: resolveUrl(finalInput) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(finalInput, { ...init, method, headers });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
