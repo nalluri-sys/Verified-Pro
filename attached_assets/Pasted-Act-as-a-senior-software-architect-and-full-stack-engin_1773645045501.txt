@@ -1,0 +1,328 @@
+Act as a senior software architect and full-stack engineer.
+Design and generate a production-ready scalable e-commerce platform similar to Amazon and Flipkart, but with a unique AI-powered product return verification agent.
+
+The system must be designed using modern scalable architecture and best practices.
+
+Project Overview
+
+Create a multi-vendor e-commerce platform where sellers can upload products and buyers can purchase them.
+
+The platform must support AI-based product verification during returns to prevent fraud.
+
+The system must include:
+
+buyer accounts
+
+seller accounts
+
+admin dashboard
+
+product catalog
+
+cart and checkout
+
+order management
+
+payment integration
+
+return management
+
+AI image verification for returned products
+
+Tech Stack
+
+Use the following stack unless a better alternative is justified.
+
+Frontend
+
+Next.js (React)
+
+TypeScript
+
+TailwindCSS
+
+Zustand or Redux
+
+Responsive mobile-first design
+
+Backend
+
+Node.js
+
+Express.js or NestJS
+
+REST API
+
+Database
+
+PostgreSQL
+
+Caching
+
+Redis
+
+Storage
+
+AWS S3 for product and return images
+
+Authentication
+
+JWT
+
+OAuth (Google optional)
+
+Payments
+
+Stripe or Razorpay
+
+AI / Computer Vision
+
+Python microservice
+
+FastAPI
+
+OpenCV
+
+CLIP or ResNet image similarity model
+
+Infrastructure
+
+Docker
+
+Kubernetes (optional)
+
+CI/CD pipeline
+
+Cloud deployment ready
+
+Core Features
+1 User Roles
+
+Buyer
+Seller
+Admin
+
+Buyer Features
+
+account registration and login
+
+product browsing
+
+category filtering
+
+product search
+
+product detail page
+
+add to cart
+
+checkout
+
+payment integration
+
+order history
+
+order tracking
+
+return request
+
+Seller Features
+
+Seller dashboard
+
+Seller can:
+
+upload products
+
+upload multiple product images
+
+set price
+
+manage stock
+
+view orders
+
+manage returns
+
+Each product must store reference images used later for return verification.
+
+Admin Features
+
+Admin dashboard with:
+
+user management
+
+seller approval
+
+product moderation
+
+fraud detection alerts
+
+return verification override
+
+analytics dashboard
+
+AI Return Verification Agent (Core Innovation)
+
+When a buyer requests a return:
+
+Step 1 – Return Request
+
+User selects order → clicks Return Product
+
+System asks for:
+
+reason for return
+
+multiple images of the product
+
+Step 2 – AI Agent Activation
+
+The AI verification service performs:
+
+1 Retrieve reference product images uploaded by seller.
+
+2 Compare user uploaded images with reference images.
+
+3 Perform:
+
+image similarity analysis
+
+product identity matching
+
+packaging verification
+
+visual anomaly detection
+
+Step 3 – Fraud Detection
+
+The AI system must detect:
+
+wrong product
+
+fake product
+
+swapped product
+
+damaged product
+
+missing parts
+
+tampered packaging
+
+Step 4 – Deep Verification
+
+If first verification passes:
+
+Run deeper checks:
+
+object detection
+
+component verification
+
+missing part detection
+
+Step 5 – Decision Engine
+
+AI system outputs:
+
+PASS → approve return
+SUSPICIOUS → manual admin review
+FAIL → reject return
+
+AI Implementation Details
+
+Use:
+
+CLIP or ResNet embeddings to calculate image similarity.
+
+Process:
+
+1 Extract embeddings from reference images
+2 Extract embeddings from user images
+3 Compute cosine similarity
+4 Apply threshold detection
+
+Optional improvements:
+
+YOLO for object detection
+
+anomaly detection model
+
+Database Design
+
+Generate full schema including tables:
+
+Users
+Sellers
+Products
+ProductImages
+Orders
+OrderItems
+Payments
+Returns
+ReturnImages
+AI_VerificationResults
+
+API Design
+
+Create REST APIs such as:
+
+POST /auth/register
+POST /auth/login
+
+GET /products
+POST /products
+
+POST /cart
+
+POST /orders
+
+POST /returns/request
+
+POST /returns/upload-images
+
+POST /ai/verify-return
+
+GET /admin/returns-review
+
+Folder Structure
+
+Generate full production folder structure.
+
+Example:
+
+frontend/
+backend/
+ai-service/
+
+Security
+
+Implement:
+
+JWT authentication
+
+role-based access control
+
+rate limiting
+
+secure file uploads
+
+fraud detection logging
+
+Output Required
+
+Generate:
+
+1 Complete system architecture
+2 Database schema
+3 Backend API structure
+4 AI service architecture
+5 Folder structure
+6 Example code snippets
+7 Deployment guide
+8 Scaling strategy
+
+Goal
+
+The platform should be scalable enough to handle millions of users and products and prevent return fraud using AI-based image verification.

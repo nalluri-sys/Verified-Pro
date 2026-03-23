@@ -1,0 +1,1277 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: AI-Powered E-Commerce Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: products
+    description: Product catalog
+  - name: categories
+    description: Product categories
+  - name: cart
+    description: Shopping cart
+  - name: orders
+    description: Order management
+  - name: returns
+    description: Return management
+  - name: payments
+    description: Payment operations
+  - name: admin
+    description: Admin operations
+  - name: sellers
+    description: Seller operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with optional filters
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductsPage"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product (seller only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product (seller only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product (seller only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /products/{id}/images:
+    post:
+      operationId: addProductImage
+      tags: [products]
+      summary: Add image URL to product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddProductImageBody"
+      responses:
+        "201":
+          description: Image added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductImage"
+
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current user cart
+      responses:
+        "200":
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: clearCart
+      tags: [cart]
+      summary: Clear cart
+      responses:
+        "204":
+          description: Cleared
+
+  /cart/items:
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartBody"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/items/{productId}:
+    patch:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItemBody"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders for current user
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create order from cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (seller/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /returns:
+    get:
+      operationId: listReturns
+      tags: [returns]
+      summary: List returns for current user
+      responses:
+        "200":
+          description: Returns list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+    post:
+      operationId: createReturn
+      tags: [returns]
+      summary: Create a return request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReturnBody"
+      responses:
+        "201":
+          description: Return created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Return"
+
+  /returns/{id}:
+    get:
+      operationId: getReturn
+      tags: [returns]
+      summary: Get return details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Return
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Return"
+
+  /returns/{id}/images:
+    post:
+      operationId: addReturnImage
+      tags: [returns]
+      summary: Add image to return request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddReturnImageBody"
+      responses:
+        "201":
+          description: Image added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReturnImage"
+
+  /returns/{id}/verify:
+    post:
+      operationId: verifyReturn
+      tags: [returns]
+      summary: Run AI verification on return
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResult"
+
+  /returns/{id}/decision:
+    patch:
+      operationId: updateReturnDecision
+      tags: [returns]
+      summary: Admin override return decision
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReturnDecisionBody"
+      responses:
+        "200":
+          description: Return updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Return"
+
+  /seller/products:
+    get:
+      operationId: listSellerProducts
+      tags: [sellers]
+      summary: List seller's own products
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /seller/orders:
+    get:
+      operationId: listSellerOrders
+      tags: [sellers]
+      summary: List orders for seller's products
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /seller/returns:
+    get:
+      operationId: listSellerReturns
+      tags: [sellers]
+      summary: List returns for seller's products
+      responses:
+        "200":
+          description: Returns list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+
+  /seller/stats:
+    get:
+      operationId: getSellerStats
+      tags: [sellers]
+      summary: Get seller dashboard stats
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users (admin)
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/users/{id}/role:
+    patch:
+      operationId: updateUserRole
+      tags: [admin]
+      summary: Update user role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRoleBody"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/products:
+    get:
+      operationId: listAdminProducts
+      tags: [admin]
+      summary: List all products (admin)
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /admin/products/{id}/status:
+    patch:
+      operationId: updateProductStatus
+      tags: [admin]
+      summary: Approve or reject product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductStatusBody"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /admin/returns:
+    get:
+      operationId: listAdminReturns
+      tags: [admin]
+      summary: List all returns with AI verdicts (admin)
+      responses:
+        "200":
+          description: Returns list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Platform-wide analytics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [buyer, seller]
+      required:
+        - name
+        - email
+        - password
+        - role
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [buyer, seller, admin]
+        isApproved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - isApproved
+        - createdAt
+
+    UpdateUserRoleBody:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [buyer, seller, admin]
+        isApproved:
+          type: boolean
+      required:
+        - role
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - slug
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        categoryId:
+          type: ["integer", "null"]
+        sellerId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImage"
+        category:
+          $ref: "#/components/schemas/Category"
+        seller:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - price
+        - stock
+        - sellerId
+        - status
+        - createdAt
+
+    ProductsPage:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - limit
+
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        url:
+          type: string
+        isPrimary:
+          type: boolean
+      required:
+        - id
+        - productId
+        - url
+        - isPrimary
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        categoryId:
+          type: ["integer", "null"]
+      required:
+        - name
+        - description
+        - price
+        - stock
+
+    UpdateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        categoryId:
+          type: ["integer", "null"]
+
+    AddProductImageBody:
+      type: object
+      properties:
+        url:
+          type: string
+        isPrimary:
+          type: boolean
+      required:
+        - url
+
+    UpdateProductStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
+      required:
+        - status
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        total:
+          type: number
+        itemCount:
+          type: integer
+      required:
+        - items
+        - total
+        - itemCount
+
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        subtotal:
+          type: number
+      required:
+        - productId
+        - quantity
+        - subtotal
+
+    AddToCartBody:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+      required:
+        - productId
+        - quantity
+
+    UpdateCartItemBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+      required:
+        - quantity
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        buyerId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        totalAmount:
+          type: number
+        shippingAddress:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - buyerId
+        - status
+        - totalAmount
+        - shippingAddress
+        - createdAt
+        - updatedAt
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        product:
+          $ref: "#/components/schemas/Product"
+      required:
+        - id
+        - orderId
+        - productId
+        - quantity
+        - unitPrice
+
+    CreateOrderBody:
+      type: object
+      properties:
+        shippingAddress:
+          type: string
+      required:
+        - shippingAddress
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [confirmed, shipped, delivered, cancelled]
+      required:
+        - status
+
+    Return:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        orderItemId:
+          type: integer
+        buyerId:
+          type: integer
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, verifying, approved, rejected, manual_review]
+        aiVerdict:
+          type: ["string", "null"]
+          enum: [PASS, FAIL, SUSPICIOUS, null]
+        aiScore:
+          type: ["number", "null"]
+        adminNotes:
+          type: ["string", "null"]
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReturnImage"
+        verificationResult:
+          $ref: "#/components/schemas/VerificationResult"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderId
+        - orderItemId
+        - buyerId
+        - reason
+        - status
+        - createdAt
+        - updatedAt
+
+    ReturnImage:
+      type: object
+      properties:
+        id:
+          type: integer
+        returnId:
+          type: integer
+        url:
+          type: string
+      required:
+        - id
+        - returnId
+        - url
+
+    CreateReturnBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        orderItemId:
+          type: integer
+        reason:
+          type: string
+      required:
+        - orderId
+        - orderItemId
+        - reason
+
+    AddReturnImageBody:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    UpdateReturnDecisionBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
+        adminNotes:
+          type: string
+      required:
+        - status
+
+    VerificationResult:
+      type: object
+      properties:
+        id:
+          type: ["integer", "null"]
+        returnId:
+          type: integer
+        verdict:
+          type: string
+          enum: [PASS, FAIL, SUSPICIOUS]
+        similarityScore:
+          type: number
+        checks:
+          $ref: "#/components/schemas/VerificationChecks"
+        createdAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - returnId
+        - verdict
+        - similarityScore
+        - checks
+
+    VerificationChecks:
+      type: object
+      properties:
+        productIdentityMatch:
+          type: boolean
+        packagingIntact:
+          type: boolean
+        noVisibleDamage:
+          type: boolean
+        correctProduct:
+          type: boolean
+        fraudRisk:
+          type: string
+          enum: [low, medium, high]
+      required:
+        - productIdentityMatch
+        - packagingIntact
+        - noVisibleDamage
+        - correctProduct
+        - fraudRisk
+
+    SellerStats:
+      type: object
+      properties:
+        totalProducts:
+          type: integer
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        pendingReturns:
+          type: integer
+        approvedReturns:
+          type: integer
+      required:
+        - totalProducts
+        - totalOrders
+        - totalRevenue
+        - pendingReturns
+        - approvedReturns
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalSellers:
+          type: integer
+        totalProducts:
+          type: integer
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        totalReturns:
+          type: integer
+        fraudAlertsCount:
+          type: integer
+        pendingApprovals:
+          type: integer
+      required:
+        - totalUsers
+        - totalSellers
+        - totalProducts
+        - totalOrders
+        - totalRevenue
+        - totalReturns
+        - fraudAlertsCount
+        - pendingApprovals

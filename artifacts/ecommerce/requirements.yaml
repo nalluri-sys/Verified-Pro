@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For page transitions, hover effects, and the AI verification scanning animations"
+  "clsx": "For conditional tailwind class merging"
+  "tailwind-merge": "For reliable tailwind class merging"
+  "date-fns": "For formatting order and return dates beautifully"
+  "zustand": "For lightweight global auth and cart state management"
+
+images:
+  - path: "artifacts/ecommerce/public/images/hero-bg.png"
+    description: "Clean, minimal, premium abstract e-commerce background with soft floating geometric shapes in white and light indigo, shallow depth of field, 3d render"
+    aspect_ratio: "16:9"
+  - path: "artifacts/ecommerce/public/images/ai-fraud-bg.png"
+    description: "Abstract visualization of artificial intelligence scanning a package, glowing blue and purple grid lines, dark premium background, 3d tech style"
+    aspect_ratio: "16:9"
+
+notes:
+  - Assuming lib/api-client-react/src/custom-fetch.ts automatically attaches the Authorization Bearer token from localStorage('token') to requests.
+  - Using zustand for Auth tracking to quickly react to login/logout without prop drilling.
