@@ -12,5 +12,5 @@ export interface UpdateProductBody {
   price?: number;
   stock?: number;
   /** @nullable */
-  categoryId?: number | null;
+  categoryId?: string | number | null;
 }

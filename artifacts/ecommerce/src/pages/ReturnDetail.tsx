@@ -10,6 +10,13 @@ import { motion } from "framer-motion";
 import { entityId } from "@/lib/entity-id";
 import { useEffect, useRef, useState } from "react";
 
+function toPercentScore(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  // Support both fraction scores (0..1) and already-percent scores (0..100).
+  const normalized = value <= 1 ? value * 100 : value;
+  return Math.max(0, Math.min(100, normalized));
+}
+
 export default function ReturnDetail() {
   const [, params] = useRoute("/returns/:id");
   const id = params?.id || "";
@@ -41,6 +48,7 @@ export default function ReturnDetail() {
 
   const shouldAutoVerify = Boolean(ret && !ret.aiVerdict && ret.status === "pending");
   const isAiProcessing = isVerifying || ret?.status === "verifying" || shouldAutoVerify;
+  const confidencePercent = toPercentScore(ret?.verificationResult?.similarityScore);
 
   useEffect(() => {
     if (!id || !shouldAutoVerify || isVerifying || autoVerifyStartedRef.current) {
@@ -177,10 +185,10 @@ export default function ReturnDetail() {
                   <div>
                     <div className="flex justify-between text-sm mb-2 text-blue-200">
                       <span>Match Confidence</span>
-                      <span className="font-bold">{ret.verificationResult?.similarityScore}%</span>
+                      <span className="font-bold">{confidencePercent.toFixed(1)}%</span>
                     </div>
                     <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div className={`h-full ${ret.aiVerdict === 'PASS' ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${ret.verificationResult?.similarityScore}%` }} />
+                      <div className={`h-full ${ret.aiVerdict === 'PASS' ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${confidencePercent}%` }} />
                     </div>
                   </div>
 

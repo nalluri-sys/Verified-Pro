@@ -134,7 +134,7 @@ export const CreateProductBody = zod.object({
   description: zod.string(),
   price: zod.number(),
   stock: zod.number(),
-  categoryId: zod.number().nullish(),
+  categoryId: zod.union([zod.string(), zod.number()]).nullish(),
 });
 
 /**
@@ -196,7 +196,7 @@ export const UpdateProductBody = zod.object({
   description: zod.string().optional(),
   price: zod.number().optional(),
   stock: zod.number().optional(),
-  categoryId: zod.number().nullish(),
+  categoryId: zod.union([zod.string(), zod.number()]).nullish(),
 });
 
 export const UpdateProductResponse = zod.object({
