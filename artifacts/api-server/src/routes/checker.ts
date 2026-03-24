@@ -46,6 +46,9 @@ async function getReturnWithProductDetails(returnId: string) {
     checkerId: ret.checkerId,
     checkerDecision: ret.checkerDecision,
     checkerNotes: ret.checkerNotes,
+    checkerNotified: ret.checkerNotified || false,
+    checkerNotifiedAt: ret.checkerNotifiedAt,
+    checkerNotificationMessage: ret.checkerNotificationMessage,
     images: ret.images || [],
     verificationResult: ret.verificationResult,
     product,
@@ -104,6 +107,8 @@ router.post("/checker/returns/:id/inspect", requireAuth, requireRole("checker", 
   ret.checkerId = req.userId! as any;
   ret.checkerDecision = decision;
   ret.checkerNotes = notes || undefined;
+  ret.checkerNotified = false;
+  ret.checkerNotificationMessage = undefined;
   
   await ret.save();
 

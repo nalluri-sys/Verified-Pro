@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/auth";
 import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ClipboardCheck, CheckCircle2, XCircle, Eye, AlertTriangle, Package, ChevronRight, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -241,10 +241,12 @@ function InspectionPanel({ ret, onDone }: { ret: ReturnItem; onDone: () => void 
 
 export default function CheckerDashboard() {
   const { user } = useAuthStore();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [returns, setReturns] = useState<ReturnItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ReturnItem | null>(null);
+  const prevAiAcceptedCountRef = useRef(0);
 
   useEffect(() => {
     if (!user || (user.role !== "checker" && user.role !== "admin")) {
@@ -265,7 +267,21 @@ export default function CheckerDashboard() {
   useEffect(() => { load(); }, []);
 
   const pending = returns.filter(r => r.status === "checker_review");
+  const aiAcceptedPending = pending.filter((r) => r.aiVerdict === "PASS");
   const done = returns.filter(r => r.status !== "checker_review");
+
+  useEffect(() => {
+    if (loading) return;
+    const currentCount = aiAcceptedPending.length;
+    if (currentCount > prevAiAcceptedCountRef.current) {
+      const diff = currentCount - prevAiAcceptedCountRef.current;
+      toast({
+        title: "New return notification",
+        description: `${diff} AI-accepted return${diff > 1 ? "s" : ""} waiting for checker pickup and inspection.`,
+      });
+    }
+    prevAiAcceptedCountRef.current = currentCount;
+  }, [aiAcceptedPending.length, loading, toast]);
 
   return (
     <Layout>
@@ -291,6 +307,16 @@ export default function CheckerDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Return list */}
           <div className="space-y-4">
+            {aiAcceptedPending.length > 0 && (
+              <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-amber-800">Checker Notification</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  {aiAcceptedPending.length} return{aiAcceptedPending.length > 1 ? "s are" : " is"} AI-accepted and waiting for pickup.
+                  Please collect and physically inspect the item at the return location.
+                </p>
+              </div>
+            )}
+
             {loading ? (
               [...Array(3)].map((_, i) => <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />)
             ) : returns.length === 0 ? (

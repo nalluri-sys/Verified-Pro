@@ -31,6 +31,9 @@ const returnSchema = new mongoose.Schema(
     checkerId: mongoose.Schema.Types.ObjectId,
     checkerDecision: { type: String, enum: ["approved", "rejected"] },
     checkerNotes: String,
+    checkerNotified: { type: Boolean, default: false },
+    checkerNotifiedAt: Date,
+    checkerNotificationMessage: String,
     images: [{ url: String }],
     verificationResult: aiVerificationSchema,
   },
@@ -62,6 +65,9 @@ export interface IReturn {
   checkerId?: mongoose.Types.ObjectId;
   checkerDecision?: "approved" | "rejected";
   checkerNotes?: string;
+  checkerNotified?: boolean;
+  checkerNotifiedAt?: Date;
+  checkerNotificationMessage?: string;
   images?: Array<{ url: string }>;
   verificationResult?: IAiVerification;
   createdAt?: Date;

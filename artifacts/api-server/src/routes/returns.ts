@@ -45,6 +45,9 @@ async function getReturnWithDetails(returnId: string) {
     checkerId: ret.checkerId,
     checkerDecision: ret.checkerDecision,
     checkerNotes: ret.checkerNotes,
+    checkerNotified: ret.checkerNotified || false,
+    checkerNotifiedAt: ret.checkerNotifiedAt,
+    checkerNotificationMessage: ret.checkerNotificationMessage,
     images: ret.images || [],
     verificationResult,
     createdAt: ret.createdAt,
@@ -153,7 +156,7 @@ router.post("/returns/:id/verify", requireAuth, async (req: AuthRequest, res): P
   };
 
   // Update return status based on verdict
-  // PASS → checker_review (physical inspection required before final approval)
+  // PASS → checker_review (checker must physically inspect sensitive items)
   // FAIL → rejected
   // SUSPICIOUS → manual_review
   let newStatus: "checker_review" | "rejected" | "manual_review" = "manual_review";
@@ -163,6 +166,15 @@ router.post("/returns/:id/verify", requireAuth, async (req: AuthRequest, res): P
   ret.status = newStatus;
   ret.aiVerdict = result.verdict;
   ret.aiScore = result.similarityScore;
+  if (newStatus === "checker_review") {
+    ret.checkerNotified = true;
+    ret.checkerNotifiedAt = new Date();
+    ret.checkerNotificationMessage =
+      "AI accepted this return. Checker pickup and physical inspection are required.";
+  } else {
+    ret.checkerNotified = false;
+    ret.checkerNotificationMessage = undefined;
+  }
   await ret.save();
 
   res.json({
