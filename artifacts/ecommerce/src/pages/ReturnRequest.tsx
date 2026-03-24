@@ -184,7 +184,7 @@ export default function ReturnRequest() {
       });
       return;
     }
-    createReturn({ data: { orderId, orderItemId: itemId, reason } });
+    createReturn({ data: { orderId, orderItemId: itemId, reason } as any });
   };
 
   return (
