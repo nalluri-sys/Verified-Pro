@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { Return, Product } from "@workspace/db";
+import { Return, Product, Order } from "@workspace/db";
 import { AddReturnImageBody, UpdateReturnDecisionBody } from "@workspace/api-zod";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth.js";
 import { verifyReturnImages } from "../lib/ai-verifier.js";
@@ -131,11 +131,21 @@ router.post("/returns/:id/verify", requireAuth, async (req: AuthRequest, res): P
   // Get return images
   const returnImages = ret.images || [];
 
-  // Get reference product images from order item (placeholder for now)
+  // Get reference product images from the ordered product
   let productImages: string[] = [];
   let productName = "";
-  // In a real scenario, you'd fetch the product from the order item
-  // For now, we'll use a placeholder
+  const order = await Order.findById(ret.orderId).lean();
+  const matchedItem = order?.items?.find(
+    (item: any) => String(item._id) === String(ret.orderItemId)
+  );
+
+  if (matchedItem?.productId) {
+    const product = await Product.findById(matchedItem.productId).lean();
+    productName = product?.name ?? "";
+    productImages = (product?.images ?? [])
+      .map((img: any) => img?.url)
+      .filter((url: unknown): url is string => typeof url === "string" && url.trim().length > 0);
+  }
 
   // Run AI verification
   const result = await verifyReturnImages({
